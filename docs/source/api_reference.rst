@@ -30,6 +30,7 @@ For a list of object and estimator types, see :ref:`estimator_types_ref`.
     api_reference/param_est
     api_reference/performance_metrics
     api_reference/split
+    api_reference/vintage
     api_reference/alignment
     api_reference/detection
     api_reference/datasets
