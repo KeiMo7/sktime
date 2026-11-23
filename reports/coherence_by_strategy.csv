@@ -1,0 +1,7 @@
+method,column_space_residual,parent_child_max_residual,method_used,warnings
+bu,1.0913936421275139e-11,3.637978807091713e-12,bu,[]
+td_fcst,8.185452315956354e-12,1.8189894035458565e-12,td_fcst,[]
+ols,7.275957614183426e-12,2.7284841053187847e-12,ols,[]
+wls_str,7.275957614183426e-12,3.637978807091713e-12,wls_str,[]
+wls_var,7.275957614183426e-12,2.7284841053187847e-12,wls_var,[]
+mint_shrink,7.275957614183426e-12,2.7284841053187847e-12,ols,"[""only 9 residual time points for 9 nodes (need >= 18); 'mint_shrink' degraded to 'ols'.""]"

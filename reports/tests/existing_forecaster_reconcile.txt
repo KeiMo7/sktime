@@ -1,0 +1,17 @@
+ssssssssssssssssssssssssssssssssssssssssssssssssss..................     [100%]
+=============================== warnings summary ===============================
+sktime/forecasting/tests/test_reconcile.py: 256 warnings
+  /home/wll/uid69/sktime/datatypes/_series/_check.py:530: Pandas4Warning: PeriodIndex.is_full is deprecated and will be removed in a future version. Use index.empty or len(index.unique()) == len(period_range(index.min(), index.max(), freq=index.freq)) instead.
+    return index.is_full
+
+sktime/forecasting/tests/test_reconcile.py::test_reconcilerforecaster_singular[0]
+sktime/forecasting/tests/test_reconcile.py::test_reconcilerforecaster_singular[0]
+  /home/wll/uid69/sktime/datatypes/_vectorize.py:102: Pandas4Warning: A future version of pandas will return a BaseOffset object instead of a string from infer_freq. Use pd.set_option('future.infer_freq_returns_offset', True) to get the future behavior, or set to False to keep the old behavior and silence this warning. To preserve the string representation, use ``infer_freq(...).freqstr``.
+    return pd.infer_freq(time_idx)
+
+sktime/forecasting/tests/test_reconcile.py: 12 warnings
+  /home/wll/uid69/sktime/datatypes/_vectorize.py:868: Pandas4Warning: A future version of pandas will return a BaseOffset object instead of a string from infer_freq. Use pd.set_option('future.infer_freq_returns_offset', True) to get the future behavior, or set to False to keep the old behavior and silence this warning. To preserve the string representation, use ``infer_freq(...).freqstr``.
+    item.index.freq = pd.infer_freq(item.index)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+18 passed, 50 skipped, 270 warnings in 3.65s

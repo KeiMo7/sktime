@@ -1,0 +1,242 @@
+{
+  "coherence": [
+    {
+      "method": "bu",
+      "column_space_residual": 1.0913936421275139e-11,
+      "parent_child_max_residual": 3.637978807091713e-12,
+      "method_used": "bu",
+      "warnings": []
+    },
+    {
+      "method": "td_fcst",
+      "column_space_residual": 8.185452315956354e-12,
+      "parent_child_max_residual": 1.8189894035458565e-12,
+      "method_used": "td_fcst",
+      "warnings": []
+    },
+    {
+      "method": "ols",
+      "column_space_residual": 7.275957614183426e-12,
+      "parent_child_max_residual": 2.7284841053187847e-12,
+      "method_used": "ols",
+      "warnings": []
+    },
+    {
+      "method": "wls_str",
+      "column_space_residual": 7.275957614183426e-12,
+      "parent_child_max_residual": 3.637978807091713e-12,
+      "method_used": "wls_str",
+      "warnings": []
+    },
+    {
+      "method": "wls_var",
+      "column_space_residual": 7.275957614183426e-12,
+      "parent_child_max_residual": 2.7284841053187847e-12,
+      "method_used": "wls_var",
+      "warnings": []
+    },
+    {
+      "method": "mint_shrink",
+      "column_space_residual": 7.275957614183426e-12,
+      "parent_child_max_residual": 2.7284841053187847e-12,
+      "method_used": "ols",
+      "warnings": [
+        "only 9 residual time points for 9 nodes (need >= 18); 'mint_shrink' degraded to 'ols'."
+      ]
+    }
+  ],
+  "quantile_crossings": 0,
+  "coverage": [
+    {
+      "source": "reconciled",
+      "level": 0,
+      "n_nodes": 1,
+      "n_timepoints": 3,
+      "coverage": 0.8,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 1.0,
+      "coverage_deviation": 0.19999999999999996
+    },
+    {
+      "source": "reconciled",
+      "level": 1,
+      "n_nodes": 2,
+      "n_timepoints": 6,
+      "coverage": 0.8,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 1.0,
+      "coverage_deviation": 0.19999999999999996
+    },
+    {
+      "source": "reconciled",
+      "level": 2,
+      "n_nodes": 6,
+      "n_timepoints": 18,
+      "coverage": 0.8,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.5,
+      "coverage_deviation": -0.30000000000000004
+    }
+  ],
+  "strategy_comparison": [
+    {
+      "method": "bu",
+      "mean_width": 3073.3786077792092,
+      "width_ratio_vs_base": 1.000300989800953,
+      "solver_rows": 0
+    },
+    {
+      "method": "ols",
+      "mean_width": 3071.775154697644,
+      "width_ratio_vs_base": 0.9997791095156768,
+      "solver_rows": 0
+    },
+    {
+      "method": "td_fcst",
+      "mean_width": 3071.1214637763615,
+      "width_ratio_vs_base": 0.9995663509333378,
+      "solver_rows": 0
+    },
+    {
+      "method": "wls_str",
+      "mean_width": 3072.453830512325,
+      "width_ratio_vs_base": 0.9999999999999999,
+      "solver_rows": 0
+    }
+  ],
+  "strategy_distinctness": {
+    "bu_vs_ols_diff_at_aggregates": 0.9945795883278757,
+    "bu_vs_td_diff_at_aggregates": 1.425103111461188
+  },
+  "width_comparison": [
+    {
+      "level": 0,
+      "coverage": 0.8,
+      "mean_width_base": 10317.576728060936,
+      "mean_width_reconciled": 10317.576728060936,
+      "width_ratio": 1.0,
+      "width_change_pct": 0.0
+    },
+    {
+      "level": 1,
+      "coverage": 0.8,
+      "mean_width_base": 3512.6270069455045,
+      "mean_width_reconciled": 3512.6270069455045,
+      "width_ratio": 1.0,
+      "width_change_pct": 0.0
+    },
+    {
+      "level": 2,
+      "coverage": 0.8,
+      "mean_width_base": 1719.596121343489,
+      "mean_width_reconciled": 1719.596121343489,
+      "width_ratio": 1.0,
+      "width_change_pct": 0.0
+    }
+  ],
+  "boundary_handling": {
+    "min_value": 0.0,
+    "max_value": 209.43664206778573,
+    "coherence_residual": 1.4210854715202004e-13,
+    "min_interval_width": 0.0,
+    "fraction_positive_width": 0.9629629629629629,
+    "solver_rows": [
+      "1949-01",
+      "1949-02",
+      "1949-03"
+    ]
+  },
+  "failure_modes": {
+    "additivity": {
+      "exception": "HierarchyAdditivityError",
+      "first_offender": {
+        "parent": "__total/__total",
+        "level": 0,
+        "n_children": 3,
+        "weight_sum": 0.3
+      }
+    },
+    "crossing": {
+      "exception": "QuantileCrossingError",
+      "locations_reported": 1,
+      "first": {
+        "time_index": 0,
+        "node_index": 0,
+        "alpha_low": 0.1,
+        "alpha_high": 0.5,
+        "value_low": 12540.262947444447,
+        "value_high": 12535.262947444447,
+        "node": "__total/__total",
+        "time": "1954-01",
+        "variable": "passengers"
+      }
+    },
+    "crossing_repair": {
+      "remaining_crossings": 0,
+      "solver_rows": [
+        "1954-01",
+        "1954-02",
+        "1954-03"
+      ]
+    },
+    "residual_degradation": {
+      "requested": "mint_cov",
+      "used": "ols",
+      "warnings": [
+        "only 9 residual time points for 9 nodes (need >= 18); 'mint_cov' degraded to 'ols'."
+      ]
+    }
+  },
+  "reproducible": true,
+  "export": {
+    "interval_columns": [
+      "level",
+      "node",
+      "timepoint",
+      "variable",
+      "coverage",
+      "lower",
+      "upper",
+      "point_forecast",
+      "width"
+    ],
+    "quantile_columns": [
+      "level",
+      "node",
+      "timepoint",
+      "variable",
+      "alpha",
+      "quantile"
+    ],
+    "interval_rows": 27,
+    "quantile_rows": 81,
+    "level_order_monotonic": true
+  },
+  "panel_timing": {
+    "n_nodes": 931,
+    "n_bottom": 900,
+    "bu": {
+      "fit_seconds": 0.095,
+      "reconcile_seconds": 0.098,
+      "solver_rows": 0,
+      "width_ratio": 1.0
+    },
+    "wls_str": {
+      "fit_seconds": 0.113,
+      "reconcile_seconds": 0.078,
+      "solver_rows": 0,
+      "width_ratio": 1.0000000000000018
+    }
+  },
+  "point_forecast_backward_compatible": {
+    "mint_cov": true,
+    "mint_shrink": true,
+    "wls_var": true,
+    "ols": true,
+    "wls_str": true,
+    "bu": true,
+    "td_fcst": true,
+    "td_share": true
+  },
+  "all_point_paths_identical": true
+}

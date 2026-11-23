@@ -1,0 +1,10 @@
+..................................                                       [100%]
+=============================== warnings summary ===============================
+sktime/forecasting/probabilistic/reconcile/tests/test_probabilistic_reconcile.py: 22 warnings
+sktime/forecasting/probabilistic/reconcile/tests/test_reconciler_forecaster_wrapper.py: 9 warnings
+  /home/wll/uid69/sktime/utils/_testing/hierarchical.py:209: Pandas4Warning: The inplace keyword in DataFrame.sort_index is deprecated and will be removed in a future version (PDEP-8).
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#deprecation-inplace for more details.
+    df.sort_index(inplace=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+34 passed, 31 warnings in 7.04s

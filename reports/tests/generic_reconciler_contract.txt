@@ -1,0 +1,12 @@
+................s...s...s...s...................s...s...s...s........... [ 29%]
+........s...s...s...s...................s...s...s...s................... [ 58%]
+s...s...s...s...................s...s...s...s...................s...s... [ 88%]
+s...s........................                                            [100%]
+=============================== warnings summary ===============================
+sktime/transformations/tests/test_all_reconcilers.py: 196 warnings
+  /home/wll/uid69/sktime/utils/_testing/hierarchical.py:209: Pandas4Warning: The inplace keyword in DataFrame.sort_index is deprecated and will be removed in a future version (PDEP-8).
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#deprecation-inplace for more details.
+    df.sort_index(inplace=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+217 passed, 28 skipped, 196 warnings in 16.72s

@@ -3,11 +3,34 @@
 """Statistical functionality used throughout sktime."""
 
 import numpy as np
-from sklearn.utils.extmath import stable_cumsum
 from sklearn.utils.validation import check_consistent_length
+
+try:
+    # removed in sklearn >= 1.10
+    from sklearn.utils.extmath import stable_cumsum
+except ImportError:
+
+    def stable_cumsum(arr, axis=None, rtol=1e-05, atol=1e-08):
+        """Fork of sklearn.utils.extmath.stable_cumsum, removed in sklearn 1.10."""
+        out = np.cumsum(arr, axis=axis if axis is not None else 0)
+        expected = np.sum(np.abs(arr), axis=axis)
+        if not np.all(
+            np.isclose(
+                np.abs(out.take(-1, axis=axis if axis is not None else 0)),
+                expected,
+                rtol=rtol,
+                atol=atol,
+            )
+        ):
+            raise RuntimeError(
+                "cumsum was found to be unstable: its last element does not "
+                "correspond to sum, please use dtype=float64"
+            )
+        return out
 
 __author__ = ["RNKuhns", "GuzalBulatova"]
 __all__ = [
+    "stable_cumsum",
     "_weighted_geometric_mean",
     "_weighted_median",
     "_weighted_min",

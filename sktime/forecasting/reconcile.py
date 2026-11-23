@@ -167,13 +167,60 @@ class ReconcilerForecaster(BaseForecaster):
     ]
     RETURN_TOTALS_LIST = [True, False]
 
-    def __init__(self, forecaster, method="mint_shrink", return_totals=True, alpha=0):
+    def __init__(
+        self,
+        forecaster,
+        method="mint_shrink",
+        return_totals=True,
+        alpha=0,
+        reconcile_pred_int=False,
+        pred_int_method=None,
+        bounds=None,
+        on_input_crossing="raise",
+    ):
         self.forecaster = forecaster
         self.method = method
         self.return_totals = return_totals
         self.alpha = alpha
+        # probabilistic reconciliation is opt-in; when False the estimator
+        # behaves bit-for-bit like the previous point-only reconciler
+        self.reconcile_pred_int = reconcile_pred_int
+        self.pred_int_method = pred_int_method
+        self.bounds = bounds
+        self.on_input_crossing = on_input_crossing
 
         super().__init__()
+
+        if self.reconcile_pred_int:
+            # advertise probabilistic capability only when switched on,
+            # so the default point-only behaviour remains unchanged
+            self.set_tags(**{"capability:pred_int": True})
+
+    def _check_method(self):
+        """Raise warning if method is not defined correctly."""
+        if not np.isin(self.method, self.METHOD_LIST):
+            raise ValueError(f"""method must be one of {self.METHOD_LIST}.""")
+        else:
+            pass
+
+    def _get_prob_reconciler_method(self):
+        """Map the public method choice to a probabilistic strategy name."""
+        if self.pred_int_method is not None:
+            return self.pred_int_method
+        # reuse the point-forecast strategy where an interval analogue exists
+        mapping = {
+            "bu": "bu",
+            "td_fcst": "td_fcst",
+            "td_share": "td_share",
+            "ols": "ols",
+            "ols:nonneg": "ols",
+            "wls_str": "wls_str",
+            "wls_str:nonneg": "wls_str",
+            "wls_var": "wls_var",
+            "mint_cov": "mint_cov",
+            "mint_shrink": "mint_shrink",
+        }
+        return mapping[self.method]
 
     def _add_totals(self, y):
         """Add total levels to y, using Aggregate."""
@@ -203,6 +250,7 @@ class ReconcilerForecaster(BaseForecaster):
         if y.index.nlevels < 2:
             self.forecaster_ = self.forecaster.clone()
             self.forecaster_.fit(y=y, X=X, fh=fh)
+            self._prob_reconciler_ = None
             return self
 
         self._series_to_keep = y.index.droplevel(-1).unique()
@@ -228,6 +276,7 @@ class ReconcilerForecaster(BaseForecaster):
             self.reconciler_transform_ = Class(**kwargs)
             yt = self.reconciler_transform_.fit_transform(y)
             self.forecaster_.fit(y=yt, X=X, fh=fh)
+            self._fit_probabilistic_reconciler(y, residuals=None)
             return self
         # fit forecasters for each level
 
@@ -263,7 +312,121 @@ class ReconcilerForecaster(BaseForecaster):
         )
         self.reconciler_transform_.fit(y)
 
+        self._fit_probabilistic_reconciler(y)
         return self
+
+    def _fit_probabilistic_reconciler(self, y, residuals=None):
+        """Build the probabilistic reconciler if the feature is enabled.
+
+        No-op when ``reconcile_pred_int`` is False, so the default point
+        reconciliation path keeps its exact behaviour.
+        """
+        if not self.reconcile_pred_int:
+            self._prob_reconciler_ = None
+            return
+        from sktime.forecasting.probabilistic.reconcile import (
+            ProbabilisticHierarchicalReconciler,
+        )
+
+        prob_method = self._get_prob_reconciler_method()
+        # non-negativity point strategies carry over into interval bounds
+        bounds = self.bounds
+        if bounds is None and self.method.endswith(":nonneg"):
+            bounds = (0.0, None)
+        self._prob_reconciler_ = ProbabilisticHierarchicalReconciler(
+            method=prob_method,
+            bounds=bounds,
+            on_input_crossing=self.on_input_crossing,
+        )
+        resid = residuals
+        if resid is None and hasattr(self, "residuals_"):
+            resid = self.residuals_
+        self._prob_reconciler_.fit(y_train=y, residuals=resid)
+        # remember the frame layout needed to align predict outputs
+        self._prob_node_index_ = y.index.droplevel(-1).unique()
+
+    def _expand_base_quantiles(self, base_q):
+        """Structurally expand base quantiles to the full hierarchy.
+
+        Pipeline reconcilers (e.g. bottom-up) fit the inner forecaster on
+        bottom-level series only, so its quantile output lacks aggregate
+        nodes. This re-adds them by plain summation through the
+        ``Aggregator``, without applying any point-reconciliation matrix,
+        leaving the probabilistic reconciler in charge of the strategy.
+        Quantile sums are coherent because summation is linear.
+        """
+        from sktime.transformations.hierarchical.aggregate import Aggregator
+
+        frame_nodes = base_q.index.droplevel(-1).unique()
+        full_nodes = self._prob_node_index_
+        if len(frame_nodes) >= len(full_nodes):
+            return base_q.sort_index()
+
+        var_names = base_q.columns.get_level_values(0).unique()
+        expanded_blocks = []
+        for var in var_names:
+            alphas = base_q[var].columns
+            blocks = []
+            for a in alphas:
+                col = base_q.loc[:, (var, a)].to_frame()
+                col.columns = [var]
+                col = Aggregator(
+                    flatten_single_levels=False
+                ).fit_transform(col)
+                block = col.rename(columns={var: a})
+                block.columns = pd.MultiIndex.from_product(
+                    [[var], [a]]
+                )
+                blocks.append(block.sort_index())
+            expanded_blocks.append(pd.concat(blocks, axis=1))
+        return pd.concat(expanded_blocks, axis=1).sort_index()
+
+    def _predict_quantiles(self, fh, X, alpha):
+        """Compute reconciled hierarchical quantile forecasts.
+
+        Only reachable when ``reconcile_pred_int=True`` (the
+        ``capability:pred_int`` tag is switched off otherwise).
+        """
+        if getattr(self, "_prob_reconciler_", None) is None:
+            # single-series path: delegate unchanged
+            return self.forecaster_.predict_quantiles(fh=fh, X=X, alpha=alpha)
+
+        from sktime.transformations.hierarchical.aggregate import _check_index_no_total
+
+        if X is not None and _check_index_no_total(X):
+            X = self._add_totals(X)
+
+        base_q = self.forecaster_.predict_quantiles(fh=fh, X=X, alpha=alpha)
+
+        if base_q.index.nlevels < 2:
+            return base_q
+
+        # expand bottom-only base forecasts to the full hierarchy first
+        base_q = self._expand_base_quantiles(base_q)
+
+        rec_frames = []
+        info = None
+        for var in base_q.columns.get_level_values(0).unique():
+            var_frame = base_q[[var]]
+            rec_frame, info = (
+                self._prob_reconciler_.reconcile_quantiles_frame(
+                    var_frame, var_name=var
+                )
+            )
+            rec_frames.append(rec_frame)
+        reconc = pd.concat(rec_frames, axis=1)
+
+        # align row layout with the point predict output contract
+        if not self.return_totals:
+            from sktime.transformations.hierarchical.aggregate import Aggregator
+
+            agg = Aggregator(
+                False, bypass_inverse_transform=False
+            ).fit(reconc)
+            reconc = agg.inverse_transform(reconc)
+        # diagnostics are exposed through the reconciler component, not as
+        # a mutable attribute on this estimator (keeps __dict__ stable)
+        return reconc.sort_index()
 
     def _predict(self, fh, X):
         """Forecast time series at future horizon.
